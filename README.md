@@ -113,3 +113,7 @@ cd mcp && set -a && . ./.env && set +a
 OFDT_DATA_DIR="$PWD/../xml" node test/smoke.e2e.mjs node dist/index.js
 node test/smoke.e2e.mjs docker run -i --rm --env-file .env -v "$PWD/../xml:/data:ro" ofdt-mcp
 ```
+
+`scripts/docker-smoke.sh` hace todo lo anterior con la imagen: build, usuario
+no root, humo por stdio y, en modo HTTP, `/healthz`, `whoami` y rechazo de
+`Origin` ajeno (403).
