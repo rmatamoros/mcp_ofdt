@@ -6,6 +6,10 @@ export interface Config {
   clientSecret: string;
   transport: 'stdio' | 'http';
   port: number;
+  /** Interfaz de escucha del modo HTTP (127.0.0.1 fuera de Docker). */
+  host: string;
+  /** Origin aceptados en /mcp; cualquier otro Origin responde 403. */
+  allowedOrigins: string[];
   dataDir: string;
 }
 
@@ -23,6 +27,8 @@ const schema = z.object({
     .min(1, 'PORT fuera de rango')
     .max(65535, 'PORT fuera de rango')
     .default(3000),
+  HOST: z.string().trim().min(1).default('127.0.0.1'),
+  MCP_ALLOWED_ORIGINS: z.string().default(''),
   OFDT_DATA_DIR: z.string().trim().min(1).default('/data'),
 });
 
@@ -40,6 +46,10 @@ export function loadConfig(env: NodeJS.ProcessEnv): Config {
     clientSecret: e.OFDT_CLIENT_SECRET,
     transport: e.MCP_TRANSPORT,
     port: e.PORT,
+    host: e.HOST,
+    allowedOrigins: e.MCP_ALLOWED_ORIGINS.split(',')
+      .map((origin) => origin.trim())
+      .filter(Boolean),
     dataDir: e.OFDT_DATA_DIR,
   };
 }

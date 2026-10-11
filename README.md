@@ -35,6 +35,8 @@ sale del cliente OAuth2 configurado; todas las herramientas ven solo sus datos.
 | `OFDT_CLIENT_SECRET` | si | Secreto del cliente |
 | `MCP_TRANSPORT` | no | `stdio` (default) o `http` |
 | `PORT` | no | Puerto HTTP, default `3000` |
+| `HOST` | no | Interfaz de escucha HTTP: `127.0.0.1` por defecto, `0.0.0.0` en la imagen Docker |
+| `MCP_ALLOWED_ORIGINS` | no | `Origin` de navegador aceptados en `/mcp`, separados por coma; por defecto ninguno (403) |
 | `OFDT_DATA_DIR` | no | Unico directorio desde el que se leen archivos, default `/data` |
 
 Copie `.env.example` a `.env` (ignorado por git) y complete los valores.
@@ -84,6 +86,10 @@ curl http://127.0.0.1:3000/healthz
 
 Endpoint MCP: `http://127.0.0.1:3000/mcp` (Streamable HTTP, sin estado).
 
+> `/mcp` rechaza con 403 cualquier peticion con un `Origin` que no este en
+> `MCP_ALLOWED_ORIGINS` (proteccion contra DNS rebinding); los clientes MCP no
+> envian `Origin`.
+>
 > En esta fase el modo HTTP usa la credencial fija del contenedor y **no
 > autentica a quien llama**: cualquiera que alcance el puerto actua como la
 > empresa del cliente OAuth2. Publiquelo solo en `127.0.0.1` o en una red

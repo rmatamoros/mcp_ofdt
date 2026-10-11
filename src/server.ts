@@ -36,6 +36,14 @@ export function createHttpApp(cfg: Config, api: Api = new OrdsClient(cfg)): Serv
       res.writeHead(404, { 'Content-Type': 'application/json' }).end('{"error":"not_found"}');
       return;
     }
+    // Los navegadores siempre envian Origin; los clientes MCP no. Rechazar
+    // Origin desconocidos evita que una pagina web use el servidor local
+    // (DNS rebinding), como exige la especificacion Streamable HTTP.
+    const origin = req.headers.origin;
+    if (origin && !cfg.allowedOrigins.includes(origin)) {
+      res.writeHead(403, { 'Content-Type': 'application/json' }).end('{"error":"origin_not_allowed"}');
+      return;
+    }
 
     const server = createServer(cfg, api);
     const transport = new StreamableHTTPServerTransport({ sessionIdGenerator: undefined });

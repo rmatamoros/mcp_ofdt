@@ -16,8 +16,8 @@ async function main(): Promise<void> {
 
   const api = new OrdsClient(cfg);
   if (cfg.transport === 'http') {
-    createHttpApp(cfg, api).listen(cfg.port, '0.0.0.0', () => {
-      console.error(`ofdt-mcp escuchando en http://0.0.0.0:${cfg.port}/mcp`);
+    createHttpApp(cfg, api).listen(cfg.port, cfg.host, () => {
+      console.error(`ofdt-mcp escuchando en http://${cfg.host}:${cfg.port}/mcp`);
     });
   } else {
     await createServer(cfg, api).connect(new StdioServerTransport());

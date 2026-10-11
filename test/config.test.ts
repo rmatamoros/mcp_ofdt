@@ -19,8 +19,16 @@ describe('loadConfig', () => {
       clientSecret: 's3cret',
       transport: 'stdio',
       port: 3000,
+      host: '127.0.0.1',
+      allowedOrigins: [],
       dataDir: '/data',
     });
+  });
+
+  it('lee HOST y la lista MCP_ALLOWED_ORIGINS', () => {
+    const cfg = loadConfig({ ...base, HOST: '0.0.0.0', MCP_ALLOWED_ORIGINS: 'https://a.com, https://b.com' });
+    expect(cfg.host).toBe('0.0.0.0');
+    expect(cfg.allowedOrigins).toEqual(['https://a.com', 'https://b.com']);
   });
 
   it('rechaza un transporte desconocido', () => {

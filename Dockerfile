@@ -10,7 +10,8 @@ RUN npm run build
 FROM node:22-alpine
 ENV NODE_ENV=production \
     OFDT_DATA_DIR=/data \
-    PORT=3000
+    PORT=3000 \
+    HOST=0.0.0.0
 WORKDIR /app
 COPY package.json package-lock.json ./
 RUN npm ci --omit=dev && npm cache clean --force

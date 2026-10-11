@@ -12,6 +12,8 @@ const cfg: Config = {
   clientSecret: 's3cret',
   transport: 'http',
   port: 0,
+  host: '127.0.0.1',
+  allowedOrigins: ['https://permitido.example'],
   dataDir: '/tmp',
 };
 
@@ -36,6 +38,33 @@ describe('transporte HTTP', () => {
 
   it('ruta desconocida responde 404', async () => {
     expect((await fetch(`${base}/otra`)).status).toBe(404);
+  });
+
+  it('rechaza /mcp con un Origin no permitido (DNS rebinding)', async () => {
+    const res = await fetch(`${base}/mcp`, {
+      method: 'POST',
+      headers: {
+        Origin: 'http://evil.example',
+        'Content-Type': 'application/json',
+        Accept: 'application/json, text/event-stream',
+      },
+      body: JSON.stringify({ jsonrpc: '2.0', id: 1, method: 'tools/list' }),
+    });
+    expect(res.status).toBe(403);
+    expect(api.request).not.toHaveBeenCalledWith('GET', 'whoami');
+  });
+
+  it('acepta /mcp con un Origin permitido', async () => {
+    const res = await fetch(`${base}/mcp`, {
+      method: 'POST',
+      headers: {
+        Origin: 'https://permitido.example',
+        'Content-Type': 'application/json',
+        Accept: 'application/json, text/event-stream',
+      },
+      body: JSON.stringify({ jsonrpc: '2.0', id: 1, method: 'tools/list' }),
+    });
+    expect(res.status).toBe(200);
   });
 
   it('un cliente MCP lista las 11 herramientas y llama a whoami', async () => {
