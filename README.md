@@ -1,0 +1,106 @@
+# ofdt-mcp
+
+Servidor MCP que expone a Claude la API REST de OFDT (`/ords/ofdt/api/v1/`):
+consultar formularios y dependencias, analizar impacto, cargar XML de Forms,
+importar o sincronizar catalogos y validar dependencias.
+
+Es un cliente delgado de la API: no se conecta a la base de datos. La empresa
+sale del cliente OAuth2 configurado; todas las herramientas ven solo sus datos.
+
+## Herramientas
+
+| Herramienta | Que hace | Modifica datos |
+|---|---|---|
+| `whoami` | Cliente y empresa del token | no |
+| `list_modules` | Formularios cargados, con filtro `search` y paginacion | no |
+| `get_module` | Estructura de un formulario (bloques, triggers, program units, LOVs...) | no |
+| `get_module_dependencies` | Dependencias con resultado de validacion (`FOUND`, `MISSING`, `NOT_VALIDATED`) | no |
+| `find_impact` | Formularios y triggers que usan un objeto de BD (`NOMBRE` u `OWNER.NOMBRE`) | no |
+| `get_form_calls` | Formularios que llama y que lo llaman (un nivel) | no |
+| `list_servers` | Servidores de catalogo de la empresa | no |
+| `upload_module` | Carga un XML de Forms (reemplaza si `overwrite`) | si |
+| `validate_module` | Valida dependencias contra un catalogo | si |
+| `import_catalog_txt` | Importa un catalogo TXT pipe-delimited | si |
+| `sync_catalog` | Sincroniza un catalogo desde su ORDS remoto | si |
+
+`upload_module` e `import_catalog_txt` reciben `path` (archivo dentro de
+`OFDT_DATA_DIR`, maximo 50 MB) o `content` (texto en linea).
+
+## Configuracion
+
+| Variable | Obligatoria | Uso |
+|---|---|---|
+| `OFDT_BASE_URL` | si | Raiz ORDS del esquema, p. ej. `https://<host>/ords/ofdt` |
+| `OFDT_CLIENT_ID` | si | Cliente OAuth2 creado con `OFDT_API.CREATE_CLIENT` ([docs/api-rest.md](../docs/api-rest.md)) |
+| `OFDT_CLIENT_SECRET` | si | Secreto del cliente |
+| `MCP_TRANSPORT` | no | `stdio` (default) o `http` |
+| `PORT` | no | Puerto HTTP, default `3000` |
+| `OFDT_DATA_DIR` | no | Unico directorio desde el que se leen archivos, default `/data` |
+
+Copie `.env.example` a `.env` (ignorado por git) y complete los valores.
+
+## Imagen Docker
+
+```bash
+docker build -t ofdt-mcp mcp
+```
+
+## Uso con Claude Code
+
+```bash
+claude mcp add ofdt -- docker run -i --rm --env-file /ruta/absoluta/mcp/.env -v /ruta/absoluta/xml:/data:ro ofdt-mcp
+```
+
+El volumen `/data` es la carpeta con los XML o TXT que Claude podra cargar;
+use `:ro` si solo se leen.
+
+## Uso con Claude Desktop
+
+En `claude_desktop_config.json`:
+
+```json
+{
+  "mcpServers": {
+    "ofdt": {
+      "command": "docker",
+      "args": [
+        "run", "-i", "--rm",
+        "--env-file", "/ruta/absoluta/mcp/.env",
+        "-v", "/ruta/absoluta/xml:/data:ro",
+        "ofdt-mcp"
+      ]
+    }
+  }
+}
+```
+
+## Modo HTTP
+
+```bash
+docker run -d --name ofdt-mcp -p 127.0.0.1:3000:3000 \
+  -e MCP_TRANSPORT=http --env-file mcp/.env ofdt-mcp
+curl http://127.0.0.1:3000/healthz
+```
+
+Endpoint MCP: `http://127.0.0.1:3000/mcp` (Streamable HTTP, sin estado).
+
+> En esta fase el modo HTTP usa la credencial fija del contenedor y **no
+> autentica a quien llama**: cualquiera que alcance el puerto actua como la
+> empresa del cliente OAuth2. Publiquelo solo en `127.0.0.1` o en una red
+> privada. La autenticacion por usuario queda para cuando se defina el
+> despliegue.
+
+## Desarrollo
+
+```bash
+cd mcp
+npm install
+npm test
+npm run build
+```
+
+Para probar contra un ambiente real sin Claude:
+
+```bash
+npx @modelcontextprotocol/inspector --cli docker run -i --rm --env-file mcp/.env ofdt-mcp --method tools/list
+```
