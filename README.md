@@ -99,8 +99,11 @@ npm test
 npm run build
 ```
 
-Para probar contra un ambiente real sin Claude:
+Prueba de humo contra un ambiente real (lista herramientas, ejecuta las
+consultas y carga `xml/fpv4020_fmb.xml`; **modifica datos**, usar solo en DEV):
 
 ```bash
-npx @modelcontextprotocol/inspector --cli docker run -i --rm --env-file mcp/.env ofdt-mcp --method tools/list
+cd mcp && set -a && . ./.env && set +a
+OFDT_DATA_DIR="$PWD/../xml" node test/smoke.e2e.mjs node dist/index.js
+node test/smoke.e2e.mjs docker run -i --rm --env-file .env -v "$PWD/../xml:/data:ro" ofdt-mcp
 ```
