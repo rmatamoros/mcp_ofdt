@@ -59,12 +59,10 @@ El workflow `.github/workflows/mcp-image.yml` publica la imagen para
 - tag `mcp-vX.Y.Z`: `X.Y.Z` y `X.Y`, sin mover `latest`; el tag debe
   coincidir con la version de `package.json`
 
-En los PR solo se construye y se prueba. El paquete hereda la visibilidad del
-repositorio (privado), asi que para descargarlo hace falta un token de GitHub
-con `read:packages`:
+En los PR solo se construye y se prueba. El paquete es publico: se descarga sin
+`docker login`.
 
 ```bash
-echo "$GHCR_TOKEN" | docker login ghcr.io -u <usuario> --password-stdin
 docker pull ghcr.io/rmatamoros/ofdt-mcp:latest
 docker tag ghcr.io/rmatamoros/ofdt-mcp:latest ofdt-mcp
 ```
