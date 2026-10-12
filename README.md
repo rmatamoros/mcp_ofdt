@@ -47,6 +47,28 @@ Copie `.env.example` a `.env` (ignorado por git) y complete los valores.
 docker build -t ofdt-mcp mcp
 ```
 
+### Imagen publicada (GHCR)
+
+El workflow `.github/workflows/mcp-image.yml` publica la imagen para
+`linux/amd64` y `linux/arm64` en `ghcr.io/rmatamoros/ofdt-mcp`:
+
+- push a `main` que toque `mcp/`: `latest` y `sha-<commit>`
+- tag `mcp-vX.Y.Z`: `X.Y.Z` y `X.Y`; el tag debe coincidir con la version de
+  `mcp/package.json`
+
+En los PR solo se construye y se prueba. El paquete hereda la visibilidad del
+repositorio (privado), asi que para descargarlo hace falta un token de GitHub
+con `read:packages`:
+
+```bash
+echo "$GHCR_TOKEN" | docker login ghcr.io -u <usuario> --password-stdin
+docker pull ghcr.io/rmatamoros/ofdt-mcp:latest
+docker tag ghcr.io/rmatamoros/ofdt-mcp:latest ofdt-mcp
+```
+
+Con el `docker tag` los ejemplos siguientes funcionan sin cambios; tambien se
+puede usar el nombre completo de la imagen en lugar de `ofdt-mcp`.
+
 ## Uso con Claude Code
 
 ```bash
