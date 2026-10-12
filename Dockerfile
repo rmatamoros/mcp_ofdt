@@ -1,11 +1,14 @@
 # syntax=docker/dockerfile:1
-FROM node:22-alpine AS build
+# La compilacion y las dependencias corren en la plataforma del builder: el
+# resultado es JavaScript puro (sin modulos nativos en produccion), asi que la
+# imagen arm64 no ejecuta npm emulado con QEMU, que se colgaba en el CI.
+FROM --platform=$BUILDPLATFORM node:22-alpine AS build
 WORKDIR /app
 COPY package.json package-lock.json ./
 RUN npm ci
 COPY tsconfig.json ./
 COPY src ./src
-RUN npm run build
+RUN npm run build && npm prune --omit=dev
 
 FROM node:22-alpine
 ENV NODE_ENV=production \
@@ -14,7 +17,7 @@ ENV NODE_ENV=production \
     HOST=0.0.0.0
 WORKDIR /app
 COPY package.json package-lock.json ./
-RUN npm ci --omit=dev && npm cache clean --force
+COPY --from=build /app/node_modules ./node_modules
 COPY --from=build /app/dist ./dist
 RUN mkdir -p /data && chown node:node /data
 USER node
