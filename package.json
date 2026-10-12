@@ -1,6 +1,6 @@
 {
   "name": "ofdt-mcp",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "private": true,
   "description": "Servidor MCP para la API REST de Oracle Forms Dependency Tracker",
   "type": "module",
