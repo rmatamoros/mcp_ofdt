@@ -12,11 +12,14 @@ Detalle tecnico (variables, herramientas, modo HTTP, desarrollo):
 
 ## 1. Requisitos
 
-- Docker Desktop (macOS o Windows) o Docker Engine (Linux).
+- Docker Desktop (macOS o Windows, con WSL 2) o Docker Engine (Linux).
 - Claude Code o Claude Desktop.
-- Una cuenta de GitHub con acceso al repositorio
-  `rmatamoros/OracleFormsDependencyTracker` (la imagen es privada).
+- Una cuenta de GitHub con acceso al paquete `ghcr.io/rmatamoros/ofdt-mcp`
+  (la imagen es privada).
 - Un cliente OAuth2 de la API (paso 2).
+
+En Windows, los pasos 3 a 5 tienen su version para PowerShell en
+[Windows (PowerShell)](#windows-powershell).
 
 ## 2. Pedir el cliente OAuth2
 
@@ -100,7 +103,8 @@ el paso 6.
 ## 5. Registrar el servidor en Claude
 
 Docker requiere rutas absolutas. En los ejemplos, reemplace `/Users/ana` por su
-carpeta personal (`echo $HOME`; en Windows, `C:\Users\ana`).
+carpeta personal (`echo $HOME`). En Windows vea
+[Windows (PowerShell)](#windows-powershell).
 
 ### Claude Code
 
@@ -143,7 +147,8 @@ Edite `claude_desktop_config.json`:
 ```
 
 En Windows use rutas como `C:\\Users\\ana\\ofdt-mcp\\.env` (con la barra
-invertida doble del JSON). Reinicie Claude Desktop despues de guardar.
+invertida doble del JSON; ver [Windows (PowerShell)](#windows-powershell)).
+Reinicie Claude Desktop despues de guardar.
 
 ## 6. Probar
 
@@ -172,15 +177,108 @@ docker pull ghcr.io/rmatamoros/ofdt-mcp:<nueva-version>
 Cambie la etiqueta en el registro de Claude (paso 5) y reinicie Claude. Si
 usa `latest`, basta con el `docker pull`.
 
+## Windows (PowerShell)
+
+Los comandos de los pasos 3 a 5 estan escritos para macOS y Linux. En Windows
+use estos en PowerShell, uno por linea. Probados en Windows 11 con
+PowerShell 5.1 y Docker Desktop.
+
+### Descargar la imagen
+
+Pegue el token del paso 3 cuando pida `Password` (no se ve al pegarlo):
+
+```powershell
+docker login ghcr.io -u <usuario-github>
+docker pull ghcr.io/rmatamoros/ofdt-mcp:0.1.0
+```
+
+No use `echo <token> | docker login ...` en `cmd`: si queda un espacio antes
+del `|`, entra en el token y el login falla.
+
+### Archivo de configuracion
+
+Cree las carpetas y abra el `.env` en el Bloc de notas (acepte crear el
+archivo nuevo):
+
+```powershell
+New-Item -ItemType Directory -Force "$HOME\ofdt-mcp\data" | Out-Null
+notepad "$HOME\ofdt-mcp\.env"
+```
+
+Pegue el contenido del paso 4 y guarde. El Bloc de notas guarda en UTF-8, que
+es lo que Docker acepta. **No cree el archivo con `>` ni con `Out-File`**: en
+PowerShell 5.1 pueden escribir UTF-16 y Docker lo rechaza (`invalid utf8
+bytes`).
+
+Deje el archivo legible solo por su usuario (equivale a `chmod 600`):
+
+```powershell
+icacls "$HOME\ofdt-mcp\.env" /inheritance:r /grant:r "$($env:USERNAME):F"
+```
+
+Compruebe que el servidor arranca. Debe responder `{"status":"ok"}`:
+
+```powershell
+docker run -d --rm --name ofdt-mcp-check -p 127.0.0.1:3000:3000 -e MCP_TRANSPORT=http --env-file "$HOME\ofdt-mcp\.env" ghcr.io/rmatamoros/ofdt-mcp:0.1.0
+curl.exe http://127.0.0.1:3000/healthz
+docker stop ofdt-mcp-check
+```
+
+Use siempre `"$HOME\..."` entre comillas: PowerShell no expande `~` en los
+argumentos de `docker`, y `~/ofdt-mcp/.env` falla con `The system cannot find
+the path specified`.
+
+### Registrar en Claude Code
+
+```powershell
+claude mcp add ofdt --scope user '--' docker run -i --rm --env-file "$HOME\ofdt-mcp\.env" -v "$HOME\ofdt-mcp\data:/data:ro" ghcr.io/rmatamoros/ofdt-mcp:0.1.0
+claude mcp list
+```
+
+El `'--'` va entre comillas a proposito: si Claude Code se instalo con `npm`,
+PowerShell borra un `--` sin comillas y `claude` toma `-i` y `--rm` como
+opciones propias. PowerShell sustituye `$HOME` por la ruta real antes de
+guardar el registro.
+
+### Registrar en Claude Desktop
+
+Abra el archivo con **Settings → Developer → Edit Config**. Si instalo Claude
+Desktop desde la Microsoft Store, el archivo no esta en `%APPDATA%\Claude`, y
+este menu abre el correcto.
+
+Use la ruta completa de su carpeta (la muestra `echo $HOME`) con la barra
+invertida doble del JSON:
+
+```json
+{
+  "mcpServers": {
+    "ofdt": {
+      "command": "docker",
+      "args": [
+        "run", "-i", "--rm",
+        "--env-file", "C:\\Users\\ana\\ofdt-mcp\\.env",
+        "-v", "C:\\Users\\ana\\ofdt-mcp\\data:/data:ro",
+        "ghcr.io/rmatamoros/ofdt-mcp:0.1.0"
+      ]
+    }
+  }
+}
+```
+
+Reinicie Claude Desktop despues de guardar y siga con el paso 6.
+
 ## Problemas comunes
 
 | Sintoma | Causa probable | Solucion |
 |---|---|---|
-| `docker pull` → `denied` o `unauthorized` | Sin sesion en GHCR, token sin `read:packages` o sin acceso al repo | Repetir el paso 3 con un token *classic* y pedir acceso al repositorio |
+| `docker pull` → `denied` o `unauthorized` | Sin sesion en GHCR, token sin `read:packages` o sin acceso al paquete | Repetir el paso 3 con un token *classic* y pedir acceso al paquete |
 | Claude no muestra las herramientas de `ofdt` | Docker no esta corriendo o la ruta del `.env` no es absoluta | Abrir Docker Desktop; revisar las rutas; ver `claude mcp list` |
 | El servidor termina con `Configuracion invalida` | Falta `OFDT_BASE_URL`, `OFDT_CLIENT_ID` u `OFDT_CLIENT_SECRET` en el `.env` | Completar el archivo del paso 4 |
 | `whoami` devuelve 401 | `client_id` o `client_secret` incorrectos, o cliente revocado | Pedir un cliente nuevo (paso 2) |
 | La carga dice `No existe el archivo ... en OFDT_DATA_DIR` o `queda fuera de OFDT_DATA_DIR` | El archivo no esta en la carpeta montada en `/data` | Copiarlo a `~/ofdt-mcp/data` y pedirlo por su nombre |
+| Windows: `--env-file: invalid env file ... invalid utf8 bytes` | El `.env` se guardo en UTF-16 | Volver a guardarlo con el Bloc de notas en UTF-8 |
+| Windows: `open ~/ofdt-mcp/.env: The system cannot find the path specified` | PowerShell no expande `~` | Usar `"$HOME\ofdt-mcp\.env"` |
+| Windows: `claude mcp add` → `unknown option '-i'` | PowerShell borro el `--` | Escribirlo entre comillas: `'--'` |
 | Primera llamada despues de un despliegue → `ORA-04068` | El paquete `OFDT_API` se recompilo | Repetir la peticion |
 
 ## Seguridad
