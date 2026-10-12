@@ -7,6 +7,9 @@ importar o sincronizar catalogos y validar dependencias.
 Es un cliente delgado de la API: no se conecta a la base de datos. La empresa
 sale del cliente OAuth2 configurado; todas las herramientas ven solo sus datos.
 
+Para instalarlo y registrarlo en Claude paso a paso, ver
+[docs/mcp-instalacion.md](../docs/mcp-instalacion.md).
+
 ## Herramientas
 
 | Herramienta | Que hace | Modifica datos |
