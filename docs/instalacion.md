@@ -72,8 +72,8 @@ Cree una carpeta para el servidor, por ejemplo `~/ofdt-mcp`, con un archivo
 `.env`:
 
 ```bash
-# Raiz ORDS del esquema (produccion)
-OFDT_BASE_URL=https://g6b4a94ffc43b22-bsiu1q0fg1bdw2lj.adb.us-ashburn-1.oraclecloudapps.com/ords/ofdt
+# API de OFDT (produccion)
+OFDT_BASE_URL=https://ofdt.aplicaciones-apex.com
 OFDT_CLIENT_ID=<client_id>
 OFDT_CLIENT_SECRET=<client_secret>
 ```
