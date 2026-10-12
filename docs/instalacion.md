@@ -14,8 +14,6 @@ Detalle tecnico (variables, herramientas, modo HTTP, desarrollo):
 
 - Docker Desktop (macOS o Windows, con WSL 2) o Docker Engine (Linux).
 - Claude Code o Claude Desktop.
-- Una cuenta de GitHub con acceso al paquete `ghcr.io/rmatamoros/ofdt-mcp`
-  (la imagen es privada).
 - Un cliente OAuth2 de la API (paso 2).
 
 En Windows, los pasos 3 a 5 tienen su version para PowerShell en
@@ -52,21 +50,17 @@ sin afectar a los demas (`EXEC ofdt_api.drop_client('mcp_<usuario>')`).
 
 ## 3. Descargar la imagen
 
-La imagen se publica en GitHub Container Registry para `amd64` y `arm64`:
+La imagen es publica en GitHub Container Registry, para `amd64` y `arm64`; no
+hace falta cuenta de GitHub ni `docker login`:
 
 | Etiqueta | Contenido |
 |---|---|
 | `latest` | Ultimo release en `main` |
-| `0.1.0`, `0.1` | Version fija |
+| `0.1.1`, `0.1` | Version fija |
 | `sha-<commit>` | Un commit concreto de `main` |
 
-Cree un token de GitHub *classic* con el permiso `read:packages`
-(GitHub → Settings → Developer settings → Personal access tokens →
-Tokens (classic)). Los tokens *fine-grained* no sirven para GHCR.
-
 ```bash
-echo "<token>" | docker login ghcr.io -u <usuario-github> --password-stdin
-docker pull ghcr.io/rmatamoros/ofdt-mcp:0.1.0
+docker pull ghcr.io/rmatamoros/ofdt-mcp:0.1.1
 ```
 
 ## 4. Archivo de configuracion
@@ -92,7 +86,7 @@ Compruebe que la configuracion es correcta. Debe responder `{"status":"ok"}`:
 ```bash
 docker run -d --rm --name ofdt-mcp-check -p 127.0.0.1:3000:3000 \
   -e MCP_TRANSPORT=http --env-file ~/ofdt-mcp/.env \
-  ghcr.io/rmatamoros/ofdt-mcp:0.1.0
+  ghcr.io/rmatamoros/ofdt-mcp:0.1.1
 curl http://127.0.0.1:3000/healthz
 docker stop ofdt-mcp-check
 ```
@@ -112,7 +106,7 @@ carpeta personal (`echo $HOME`). En Windows vea
 claude mcp add ofdt --scope user -- docker run -i --rm \
   --env-file /Users/ana/ofdt-mcp/.env \
   -v /Users/ana/ofdt-mcp/data:/data:ro \
-  ghcr.io/rmatamoros/ofdt-mcp:0.1.0
+  ghcr.io/rmatamoros/ofdt-mcp:0.1.1
 ```
 
 `--scope user` lo deja disponible en todos sus proyectos. Verifique con:
@@ -139,7 +133,7 @@ Edite `claude_desktop_config.json`:
         "run", "-i", "--rm",
         "--env-file", "/Users/ana/ofdt-mcp/.env",
         "-v", "/Users/ana/ofdt-mcp/data:/data:ro",
-        "ghcr.io/rmatamoros/ofdt-mcp:0.1.0"
+        "ghcr.io/rmatamoros/ofdt-mcp:0.1.1"
       ]
     }
   }
@@ -185,15 +179,9 @@ PowerShell 5.1 y Docker Desktop.
 
 ### Descargar la imagen
 
-Pegue el token del paso 3 cuando pida `Password` (no se ve al pegarlo):
-
 ```powershell
-docker login ghcr.io -u <usuario-github>
-docker pull ghcr.io/rmatamoros/ofdt-mcp:0.1.0
+docker pull ghcr.io/rmatamoros/ofdt-mcp:0.1.1
 ```
-
-No use `echo <token> | docker login ...` en `cmd`: si queda un espacio antes
-del `|`, entra en el token y el login falla.
 
 ### Archivo de configuracion
 
@@ -219,7 +207,7 @@ icacls "$HOME\ofdt-mcp\.env" /inheritance:r /grant:r "$($env:USERNAME):F"
 Compruebe que el servidor arranca. Debe responder `{"status":"ok"}`:
 
 ```powershell
-docker run -d --rm --name ofdt-mcp-check -p 127.0.0.1:3000:3000 -e MCP_TRANSPORT=http --env-file "$HOME\ofdt-mcp\.env" ghcr.io/rmatamoros/ofdt-mcp:0.1.0
+docker run -d --rm --name ofdt-mcp-check -p 127.0.0.1:3000:3000 -e MCP_TRANSPORT=http --env-file "$HOME\ofdt-mcp\.env" ghcr.io/rmatamoros/ofdt-mcp:0.1.1
 curl.exe http://127.0.0.1:3000/healthz
 docker stop ofdt-mcp-check
 ```
@@ -231,7 +219,7 @@ the path specified`.
 ### Registrar en Claude Code
 
 ```powershell
-claude mcp add ofdt --scope user '--' docker run -i --rm --env-file "$HOME\ofdt-mcp\.env" -v "$HOME\ofdt-mcp\data:/data:ro" ghcr.io/rmatamoros/ofdt-mcp:0.1.0
+claude mcp add ofdt --scope user '--' docker run -i --rm --env-file "$HOME\ofdt-mcp\.env" -v "$HOME\ofdt-mcp\data:/data:ro" ghcr.io/rmatamoros/ofdt-mcp:0.1.1
 claude mcp list
 ```
 
@@ -258,7 +246,7 @@ invertida doble del JSON:
         "run", "-i", "--rm",
         "--env-file", "C:\\Users\\ana\\ofdt-mcp\\.env",
         "-v", "C:\\Users\\ana\\ofdt-mcp\\data:/data:ro",
-        "ghcr.io/rmatamoros/ofdt-mcp:0.1.0"
+        "ghcr.io/rmatamoros/ofdt-mcp:0.1.1"
       ]
     }
   }
@@ -271,7 +259,7 @@ Reinicie Claude Desktop despues de guardar y siga con el paso 6.
 
 | Sintoma | Causa probable | Solucion |
 |---|---|---|
-| `docker pull` → `denied` o `unauthorized` | Sin sesion en GHCR, token sin `read:packages` o sin acceso al paquete | Repetir el paso 3 con un token *classic* y pedir acceso al paquete |
+| `docker pull` → `denied` o `unauthorized` | Credenciales viejas o vencidas de `ghcr.io` guardadas en Docker | `docker logout ghcr.io` y repetir el `pull` |
 | Claude no muestra las herramientas de `ofdt` | Docker no esta corriendo o la ruta del `.env` no es absoluta | Abrir Docker Desktop; revisar las rutas; ver `claude mcp list` |
 | El servidor termina con `Configuracion invalida` | Falta `OFDT_BASE_URL`, `OFDT_CLIENT_ID` u `OFDT_CLIENT_SECRET` en el `.env` | Completar el archivo del paso 4 |
 | `whoami` devuelve 401 | `client_id` o `client_secret` incorrectos, o cliente revocado | Pedir un cliente nuevo (paso 2) |
