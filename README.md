@@ -53,8 +53,8 @@ El workflow `.github/workflows/mcp-image.yml` publica la imagen para
 `linux/amd64` y `linux/arm64` en `ghcr.io/rmatamoros/ofdt-mcp`:
 
 - push a `main` que toque `mcp/`: `latest` y `sha-<commit>`
-- tag `mcp-vX.Y.Z`: `X.Y.Z` y `X.Y`; el tag debe coincidir con la version de
-  `mcp/package.json`
+- tag `mcp-vX.Y.Z`: `X.Y.Z` y `X.Y`, sin mover `latest`; el tag debe
+  coincidir con la version de `mcp/package.json`
 
 En los PR solo se construye y se prueba. El paquete hereda la visibilidad del
 repositorio (privado), asi que para descargarlo hace falta un token de GitHub
