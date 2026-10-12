@@ -14,7 +14,7 @@
 
 - Rama: `feat/mcp-server`. Commits en espanol con `Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>`.
 - No editar changesets XML ya ejecutados; los `.sql` referenciados por changesets `runOnChange="true"` (v1.4-002, v1.4-003) si se editan.
-- Despliegue y pruebas de backend solo contra DEV (conexion SQLcl `ofxml_dev`; `set define off` antes de `lb update`). Nunca usar `E2E_TESTER`.
+- Despliegue y pruebas de backend solo contra DEV (conexion SQLcl de DEV; `set define off` antes de `lb update`). Nunca usar `E2E_TESTER`.
 - La empresa siempre sale de `resolve_empresa(p_client)`; ningun endpoint la recibe por parametro. Recurso de otra empresa => `404`.
 - Errores JSON `{"error","status","message"}` via `handle_error(<accion>, p_status)`.
 - Paginacion: `limit` default 100, maximo 500; `offset` default 0; respuesta `{"items":[...],"limit":n,"offset":n,"has_more":bool}`. `limit` fuera de 1..500 u `offset` < 0 => `400`.
