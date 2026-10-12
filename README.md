@@ -8,7 +8,7 @@ Es un cliente delgado de la API: no se conecta a la base de datos. La empresa
 sale del cliente OAuth2 configurado; todas las herramientas ven solo sus datos.
 
 Para instalarlo y registrarlo en Claude paso a paso, ver
-[docs/mcp-instalacion.md](../docs/mcp-instalacion.md).
+[docs/instalacion.md](docs/instalacion.md).
 
 ## Herramientas
 
@@ -34,7 +34,7 @@ Para instalarlo y registrarlo en Claude paso a paso, ver
 | Variable | Obligatoria | Uso |
 |---|---|---|
 | `OFDT_BASE_URL` | si | Raiz ORDS del esquema, p. ej. `https://<host>/ords/ofdt` |
-| `OFDT_CLIENT_ID` | si | Cliente OAuth2 creado con `OFDT_API.CREATE_CLIENT` ([docs/api-rest.md](../docs/api-rest.md)) |
+| `OFDT_CLIENT_ID` | si | Cliente OAuth2 creado con `OFDT_API.CREATE_CLIENT` ([docs/api-rest.md](https://github.com/rmatamoros/OracleFormsDependencyTracker/blob/main/docs/api-rest.md) en OracleFormsDependencyTracker) |
 | `OFDT_CLIENT_SECRET` | si | Secreto del cliente |
 | `MCP_TRANSPORT` | no | `stdio` (default) o `http` |
 | `PORT` | no | Puerto HTTP, default `3000` |
@@ -47,7 +47,7 @@ Copie `.env.example` a `.env` (ignorado por git) y complete los valores.
 ## Imagen Docker
 
 ```bash
-docker build -t ofdt-mcp mcp
+docker build -t ofdt-mcp .
 ```
 
 ### Imagen publicada (GHCR)
@@ -55,9 +55,9 @@ docker build -t ofdt-mcp mcp
 El workflow `.github/workflows/mcp-image.yml` publica la imagen para
 `linux/amd64` y `linux/arm64` en `ghcr.io/rmatamoros/ofdt-mcp`:
 
-- push a `main` que toque `mcp/`: `latest` y `sha-<commit>`
+- push a `main`: `latest` y `sha-<commit>`
 - tag `mcp-vX.Y.Z`: `X.Y.Z` y `X.Y`, sin mover `latest`; el tag debe
-  coincidir con la version de `mcp/package.json`
+  coincidir con la version de `package.json`
 
 En los PR solo se construye y se prueba. El paquete hereda la visibilidad del
 repositorio (privado), asi que para descargarlo hace falta un token de GitHub
@@ -75,7 +75,7 @@ puede usar el nombre completo de la imagen en lugar de `ofdt-mcp`.
 ## Uso con Claude Code
 
 ```bash
-claude mcp add ofdt -- docker run -i --rm --env-file /ruta/absoluta/mcp/.env -v /ruta/absoluta/xml:/data:ro ofdt-mcp
+claude mcp add ofdt -- docker run -i --rm --env-file /ruta/absoluta/.env -v /ruta/absoluta/xml:/data:ro ofdt-mcp
 ```
 
 El volumen `/data` es la carpeta con los XML o TXT que Claude podra cargar;
@@ -92,7 +92,7 @@ En `claude_desktop_config.json`:
       "command": "docker",
       "args": [
         "run", "-i", "--rm",
-        "--env-file", "/ruta/absoluta/mcp/.env",
+        "--env-file", "/ruta/absoluta/.env",
         "-v", "/ruta/absoluta/xml:/data:ro",
         "ofdt-mcp"
       ]
@@ -105,7 +105,7 @@ En `claude_desktop_config.json`:
 
 ```bash
 docker run -d --name ofdt-mcp -p 127.0.0.1:3000:3000 \
-  -e MCP_TRANSPORT=http --env-file mcp/.env ofdt-mcp
+  -e MCP_TRANSPORT=http --env-file .env ofdt-mcp
 curl http://127.0.0.1:3000/healthz
 ```
 
@@ -124,19 +124,21 @@ Endpoint MCP: `http://127.0.0.1:3000/mcp` (Streamable HTTP, sin estado).
 ## Desarrollo
 
 ```bash
-cd mcp
 npm install
 npm test
 npm run build
 ```
 
 Prueba de humo contra un ambiente real (lista herramientas, ejecuta las
-consultas y carga `xml/fpv4020_fmb.xml`; **modifica datos**, usar solo en DEV):
+consultas y carga `fpv4020_fmb.xml`; **modifica datos**, usar solo en DEV).
+`OFDT_XML_DIR` apunta a la carpeta `xml/` de
+[OracleFormsDependencyTracker](https://github.com/rmatamoros/OracleFormsDependencyTracker):
 
 ```bash
-cd mcp && set -a && . ./.env && set +a
-OFDT_DATA_DIR="$PWD/../xml" node test/smoke.e2e.mjs node dist/index.js
-node test/smoke.e2e.mjs docker run -i --rm --env-file .env -v "$PWD/../xml:/data:ro" ofdt-mcp
+set -a && . ./.env && set +a
+export OFDT_XML_DIR="$PWD/../OracleFormsDependencyTracker/xml"
+OFDT_DATA_DIR="$OFDT_XML_DIR" node test/smoke.e2e.mjs node dist/index.js
+node test/smoke.e2e.mjs docker run -i --rm --env-file .env -v "$OFDT_XML_DIR:/data:ro" ofdt-mcp
 ```
 
 `scripts/docker-smoke.sh` hace todo lo anterior con la imagen: build, usuario

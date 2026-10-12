@@ -1,9 +1,12 @@
 #!/usr/bin/env bash
-# Construye la imagen ofdt-mcp y la prueba contra el ambiente de mcp/.env.
-# La prueba stdio carga xml/fpv4020_fmb.xml (modifica datos): usar solo en DEV.
-# Uso: mcp/scripts/docker-smoke.sh
+# Construye la imagen ofdt-mcp y la prueba contra el ambiente de .env.
+# La prueba stdio carga fpv4020_fmb.xml desde OFDT_XML_DIR (por defecto la
+# carpeta xml/ de OracleFormsDependencyTracker clonado al lado de este repo).
+# Modifica datos: usar solo en DEV.
+# Uso: scripts/docker-smoke.sh
 set -euo pipefail
 cd "$(dirname "$0")/.."
+xml_dir="${OFDT_XML_DIR:-$PWD/../OracleFormsDependencyTracker/xml}"
 
 echo "== build"
 docker build -t ofdt-mcp .
@@ -13,7 +16,7 @@ echo "== usuario y /data"
 docker run --rm --entrypoint sh ofdt-mcp -c 'id -un; ls -ld /data'
 
 echo "== stdio"
-node test/smoke.e2e.mjs docker run -i --rm --env-file .env -v "$PWD/../xml:/data:ro" ofdt-mcp
+node test/smoke.e2e.mjs docker run -i --rm --env-file .env -v "$xml_dir:/data:ro" ofdt-mcp
 
 echo "== http"
 docker rm -f ofdt-mcp-smoke >/dev/null 2>&1 || true

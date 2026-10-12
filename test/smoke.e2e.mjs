@@ -1,7 +1,7 @@
 // Prueba de humo contra un ambiente real (no corre con npm test).
 // Uso: node test/smoke.e2e.mjs <comando> [args...]   p. ej.
 //   node test/smoke.e2e.mjs node dist/index.js
-//   node test/smoke.e2e.mjs docker run -i --rm --env-file .env -v "$PWD/../xml:/data:ro" ofdt-mcp
+//   node test/smoke.e2e.mjs docker run -i --rm --env-file .env -v "$OFDT_XML_DIR:/data:ro" ofdt-mcp
 import { Client } from '@modelcontextprotocol/sdk/client/index.js';
 import { StdioClientTransport } from '@modelcontextprotocol/sdk/client/stdio.js';
 
