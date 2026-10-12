@@ -181,7 +181,7 @@ despliegue.
 - **Unitarias (vitest):** `ordsClient` con `fetch` simulado (cache del token,
   renovacion ante `401`, mapeo de errores), validacion de `path` fuera de
   `OFDT_DATA_DIR`, y que cada herramienta arme bien metodo, ruta y query.
-- **Backend:** con SQLcl contra DEV (`ofxml_dev`), llamar cada endpoint GET
+- **Backend:** con SQLcl contra DEV, llamar cada endpoint GET
   con `curl` y un cliente de prueba de empresa 1; comprobar `404` con un
   `module_id` de otra empresa y paginacion con `has_more`.
 - **Humo del contenedor:** `npx @modelcontextprotocol/inspector` contra la

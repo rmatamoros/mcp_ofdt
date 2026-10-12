@@ -20,8 +20,9 @@ Detalle tecnico (variables, herramientas, modo HTTP, desarrollo):
 
 ## 2. Pedir el cliente OAuth2
 
-Un administrador de OFDT crea el cliente como owner del esquema
-(`WKSP_OFXML`), con la empresa que le corresponde (ver [`docs/api-rest.md`](api-rest.md#alta-de-clientes)):
+Un administrador de OFDT crea el cliente como owner del esquema de OFDT, con
+la empresa que le corresponde (ver `docs/api-rest.md` en
+[OracleFormsDependencyTracker](https://github.com/rmatamoros/OracleFormsDependencyTracker)):
 
 ```sql
 SET SERVEROUTPUT ON
@@ -71,8 +72,8 @@ Cree una carpeta para el servidor, por ejemplo `~/ofdt-mcp`, con un archivo
 `.env`:
 
 ```bash
-# Raiz ORDS del esquema (produccion)
-OFDT_BASE_URL=https://<host>/ords/ofdt
+# API de OFDT (produccion)
+OFDT_BASE_URL=https://ofdt.aplicaciones-apex.com
 OFDT_CLIENT_ID=<client_id>
 OFDT_CLIENT_SECRET=<client_secret>
 ```
