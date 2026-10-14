@@ -15,7 +15,7 @@ Para instalarlo y registrarlo en Claude paso a paso, ver
 | Herramienta | Que hace | Modifica datos |
 |---|---|---|
 | `whoami` | Cliente y empresa del token | no |
-| `list_modules` | Formularios cargados, con filtro `search` y paginacion | no |
+| `list_modules` | Formularios y librerias PLL cargados, con filtros `search` y `type` (`FORM`/`LIBRARY`) y paginacion | no |
 | `get_module` | Estructura de un formulario (bloques, triggers, program units, LOVs...) | no |
 | `get_module_dependencies` | Dependencias con resultado de validacion (`FOUND`, `MISSING`, `NOT_VALIDATED`) | no |
 | `find_impact` | Formularios y triggers que usan un objeto de BD (`NOMBRE` u `OWNER.NOMBRE`) | no |
