@@ -28,16 +28,17 @@ export function registerQueryTools(server: McpServer, api: Api): void {
   server.registerTool(
     'list_modules',
     {
-      title: 'Listar formularios',
-      description: 'Lista los formularios Oracle Forms cargados, con conteos de bloques, triggers, program units y dependencias. Use search para filtrar por nombre (sin distinguir mayusculas). Paginado: si has_more es true, pida la siguiente pagina con offset.',
+      title: 'Listar formularios y librerias',
+      description: 'Lista los modulos cargados: formularios Oracle Forms (FORM) y librerias PLL (LIBRARY), con conteos de bloques, triggers, program units y dependencias. Use search para filtrar por nombre (sin distinguir mayusculas) y type para ver solo formularios o solo librerias; sin type devuelve ambos. Paginado: si has_more es true, pida la siguiente pagina con offset.',
       inputSchema: {
-        search: z.string().min(1).optional().describe('Parte del nombre del formulario, p. ej. "fpv"'),
+        search: z.string().min(1).optional().describe('Parte del nombre del modulo, p. ej. "fpv"'),
+        type: z.enum(['FORM', 'LIBRARY']).optional().describe('FORM (formularios) o LIBRARY (librerias PLL); sin type, ambos'),
         ...paging,
       },
       annotations: readOnly,
     },
-    ({ search, limit, offset }) =>
-      runTool(() => api.request('GET', 'modules', { query: { search, limit, offset } })),
+    ({ search, type, limit, offset }) =>
+      runTool(() => api.request('GET', 'modules', { query: { search, type, limit, offset } })),
   );
 
   server.registerTool(

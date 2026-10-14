@@ -57,6 +57,25 @@ describe('herramientas de consulta', () => {
     });
   });
 
+  it('list_modules filtra por type (FORM o LIBRARY)', async () => {
+    const client = fakeClient();
+    const mcp = await connect((s) => registerQueryTools(s, client));
+    await call(mcp, 'list_modules', { type: 'LIBRARY' });
+
+    expect(client.request).toHaveBeenCalledWith('GET', 'modules', {
+      query: { search: undefined, type: 'LIBRARY', limit: undefined, offset: undefined },
+    });
+  });
+
+  it('rechaza un type de list_modules que no sea FORM ni LIBRARY', async () => {
+    const client = fakeClient();
+    const mcp = await connect((s) => registerQueryTools(s, client));
+    const r = await call(mcp, 'list_modules', { type: 'PACKAGE' });
+
+    expect(r.isError).toBe(true);
+    expect(client.request).not.toHaveBeenCalled();
+  });
+
   it('get_module, get_form_calls, list_servers y whoami usan su ruta', async () => {
     const client = fakeClient();
     const mcp = await connect((s) => registerQueryTools(s, client));
